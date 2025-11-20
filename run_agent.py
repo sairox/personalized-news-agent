@@ -9,7 +9,11 @@ import asyncio
 import os
 from uuid import uuid4
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    load_dotenv = None
+
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
 from google.genai import types
@@ -20,7 +24,8 @@ from news_agent import root_agent
 async def run_agent_interactive():
     """Run the news agent in an interactive loop."""
     # Load environment variables (for API keys)
-    load_dotenv()
+    if load_dotenv:
+        load_dotenv()
 
     # Verify API key is set
     api_key = os.getenv("GOOGLE_API_KEY")
