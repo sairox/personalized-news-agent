@@ -14,6 +14,7 @@ An AI-powered news agent built with Google's Agent Development Kit (ADK) that de
 
 - Python 3.10 or higher
 - A Google API key for Gemini models
+- A NewsAPI key for fetching real news (free tier available)
 
 ## Installation
 
@@ -36,14 +37,16 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up your Google API key:
+4. Set up your API keys:
 
 ```bash
 cp .env.example .env
-# Edit .env and add your Google API key
+# Edit .env and add your API keys
 ```
 
-You can get an API key from [Google AI Studio](https://aistudio.google.com/apikey).
+You'll need two API keys:
+- **Google API Key**: Get it from [Google AI Studio](https://aistudio.google.com/apikey)
+- **NewsAPI Key**: Get a free key from [NewsAPI](https://newsapi.org/register)
 
 ## Usage
 
@@ -131,13 +134,15 @@ root_agent = Agent(
 )
 ```
 
-### Using Real News APIs
+### News API Integration
 
-Replace the mock data in `tools.py` with calls to real news APIs:
+This agent uses [NewsAPI](https://newsapi.org/) to fetch real news articles. The integration supports:
 
-- [NewsAPI](https://newsapi.org/)
-- [Google News API](https://developers.google.com/custom-search)
-- [Bing News Search API](https://www.microsoft.com/en-us/bing/apis/bing-news-search-api)
+- **Top Headlines by Category**: business, entertainment, general, health, science, sports, technology
+- **Search**: Full-text search across millions of articles
+- **Trending Topics**: Current top headlines by region
+
+The free tier allows 100 requests per day, which is suitable for development and personal use.
 
 ## License
 
