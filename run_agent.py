@@ -7,12 +7,16 @@ without using the CLI tools (adk web, adk run).
 
 import asyncio
 import os
+import warnings
 from uuid import uuid4
 
 try:
     from dotenv import load_dotenv
 except ImportError:
     load_dotenv = None
+
+# Suppress the warning about non-text parts in responses (function calls)
+warnings.filterwarnings("ignore", message=".*non-text parts in the response.*")
 
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
@@ -86,6 +90,8 @@ async def run_agent_interactive():
             print("\nAgent: ", end="", flush=True)
 
             response_text = ""
+            tool_calls_made = False
+
             async for event in runner.run_async(
                 user_id=user_id,
                 session_id=session_id,
@@ -95,8 +101,14 @@ async def run_agent_interactive():
                 if hasattr(event, "content") and event.content:
                     if hasattr(event.content, "parts"):
                         for part in event.content.parts:
+                            # Handle text parts
                             if hasattr(part, "text") and part.text:
                                 response_text += part.text
+                            # Detect function calls (tools being used)
+                            elif hasattr(part, "function_call"):
+                                if not tool_calls_made:
+                                    print("[thinking and using tools...] ", end="", flush=True)
+                                    tool_calls_made = True
 
             if response_text:
                 print(response_text)
