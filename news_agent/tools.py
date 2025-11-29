@@ -6,9 +6,16 @@ specific tasks like fetching news, filtering by category, and summarizing.
 
 import os
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Dict
 
 import httpx
+
+from .email_service import create_news_digest_html, send_email
+from .user_preferences import (
+    record_feedback,
+    get_user_preferences_detailed,
+    get_recommended_categories,
+)
 
 # NewsAPI configuration
 NEWSAPI_BASE_URL = "https://newsapi.org/v2"
@@ -330,3 +337,153 @@ def get_trending_topics(region: Optional[str] = None) -> dict:
             "message": f"Failed to fetch trending topics: {str(e)}",
             "topics": [],
         }
+
+
+def collect_daily_digest(user_id: str = "demo_user") -> dict:
+    """Collects 6 news articles for daily digest (2 tech, 2 politics, 2 world news).
+
+    Use this tool to collect curated news articles for the daily email digest.
+    Articles are selected based on user preferences if available.
+
+    Args:
+        user_id: The unique identifier for the user.
+
+    Returns:
+        dict: A dictionary containing collected articles for the digest.
+    """
+    try:
+        # Get user's preferred categories or use defaults
+        user_prefs = get_user_preferences_detailed(user_id)
+        favorite_categories = user_prefs.get("favorite_categories", [])
+
+        # Define categories for digest: tech, politics/general, world news
+        categories_to_fetch = [
+            ("technology", 2),
+            ("general", 2),  # Politics usually falls under general
+            ("business", 2),  # Alternative to world news
+        ]
+
+        # If user has preferences, try to incorporate them
+        if favorite_categories:
+            # Use favorite categories but ensure variety
+            categories_to_fetch = []
+            for cat in favorite_categories[:3]:
+                categories_to_fetch.append((cat, 2))
+
+        all_articles = []
+
+        for category, count in categories_to_fetch:
+            result = fetch_news_by_category(category, limit=count)
+            if result.get("status") == "success":
+                articles = result.get("articles", [])
+                # Add category to each article for tracking
+                for article in articles:
+                    article["category"] = category
+                    all_articles.append(article)
+
+        return {
+            "status": "success",
+            "user_id": user_id,
+            "total_articles": len(all_articles),
+            "articles": all_articles,
+            "personalized": bool(favorite_categories),
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to collect daily digest: {str(e)}",
+            "articles": [],
+        }
+
+
+def send_daily_digest_email(user_id: str = "demo_user", recipient_email: str = None) -> dict:
+    """Sends the daily news digest email with like/dislike buttons.
+
+    Use this tool to send a personalized daily news digest to the user's email.
+    The email contains 6 articles with interactive like/dislike buttons for feedback.
+
+    Args:
+        user_id: The unique identifier for the user.
+        recipient_email: Email address to send to (optional, uses env var if not provided).
+
+    Returns:
+        dict: Status of the email sending operation.
+    """
+    try:
+        # Collect articles for digest
+        digest_result = collect_daily_digest(user_id)
+
+        if digest_result.get("status") != "success":
+            return digest_result
+
+        articles = digest_result.get("articles", [])
+
+        if not articles:
+            return {
+                "status": "error",
+                "message": "No articles available for digest",
+            }
+
+        # Create HTML email
+        html_content = create_news_digest_html(articles, user_id)
+
+        # Get recipient email
+        if not recipient_email:
+            recipient_email = os.getenv("RECIPIENT_EMAIL")
+
+        if not recipient_email:
+            return {
+                "status": "error",
+                "message": "Recipient email not provided. Set RECIPIENT_EMAIL in .env",
+            }
+
+        # Send email
+        subject = f"📰 Your Daily News Digest - {datetime.now().strftime('%B %d, %Y')}"
+        result = send_email(recipient_email, subject, html_content)
+
+        return result
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to send daily digest: {str(e)}",
+        }
+
+
+def track_article_feedback(
+    user_id: str,
+    article_id: str,
+    category: str,
+    action: str
+) -> dict:
+    """Records user feedback (like/dislike) on a news article.
+
+    Use this tool when the user provides feedback on an article.
+    This helps personalize future news recommendations.
+
+    Args:
+        user_id: The unique identifier for the user.
+        article_id: Unique identifier for the article.
+        category: The category of the article (e.g., 'technology', 'business').
+        action: Either 'like' or 'dislike'.
+
+    Returns:
+        dict: Confirmation of the feedback recording.
+    """
+    return record_feedback(user_id, article_id, category, action)
+
+
+def get_personalized_preferences(user_id: str) -> dict:
+    """Gets detailed user preferences based on feedback history.
+
+    Use this tool to understand user preferences and personalize content.
+    Returns favorite categories, engagement statistics, and recommendation data.
+
+    Args:
+        user_id: The unique identifier for the user.
+
+    Returns:
+        dict: Detailed preference information and statistics.
+    """
+    return get_user_preferences_detailed(user_id)

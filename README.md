@@ -9,12 +9,18 @@ An AI-powered news agent built with Google's Agent Development Kit (ADK) that de
 - Discover trending topics
 - Save articles to a reading list
 - Personalized recommendations based on user preferences
+- **Daily email digests** with 6 curated articles (2 tech, 2 politics, 2 world news)
+- **Like/Dislike feedback system** to learn your preferences
+- **Intelligent personalization** that adapts to your interests over time
+- **Automated scheduling** for daily 7:00 AM email delivery
 
 ## Prerequisites
 
 - Python 3.10 or higher
 - A Google API key for Gemini models
 - A NewsAPI key for fetching real news (free tier available)
+- An email account for sending digests (Gmail recommended)
+- (Optional) A publicly accessible URL for feedback webhooks in production
 
 ## Installation
 
@@ -37,16 +43,19 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up your API keys:
+4. Set up your configuration:
 
 ```bash
 cp .env.example .env
-# Edit .env and add your API keys
+# Edit .env and add your credentials
 ```
 
-You'll need two API keys:
+You'll need to configure:
 - **Google API Key**: Get it from [Google AI Studio](https://aistudio.google.com/apikey)
 - **NewsAPI Key**: Get a free key from [NewsAPI](https://newsapi.org/register)
+- **Email Settings**: Configure SMTP for sending daily digests
+  - For Gmail: Use an [App Password](https://support.google.com/accounts/answer/185833)
+  - Set `EMAIL_ADDRESS`, `EMAIL_PASSWORD`, and `RECIPIENT_EMAIL`
 
 ## Usage
 
@@ -76,30 +85,96 @@ python run_agent.py
 
 This starts an interactive command-line session with the agent.
 
+### Option 3: Daily Email Digest
+
+Send personalized news digests via email with like/dislike feedback.
+
+**1. Start the feedback webhook server (in one terminal):**
+
+```bash
+python feedback_server.py
+```
+
+This server handles like/dislike button clicks from emails.
+
+**2. Send a test digest (in another terminal):**
+
+```bash
+python daily_scheduler.py --now
+```
+
+**3. Schedule automatic daily digests at 7:00 AM:**
+
+```bash
+python daily_scheduler.py
+```
+
+**Optional arguments:**
+- `--hour 8`: Send at different hour (e.g., 8 AM)
+- `--email user@example.com`: Override recipient email
+- `--user-id myuser`: Specify user ID for personalization
+
+**Using cron for production (Linux/Mac):**
+
+```bash
+# Edit crontab
+crontab -e
+
+# Add this line to send daily at 7:00 AM
+0 7 * * * cd /path/to/personalized-news-agent && /path/to/venv/bin/python daily_scheduler.py --now
+```
+
+### How Personalization Works
+
+1. **Initial Digest**: You receive 6 articles (2 tech, 2 politics/general, 2 business)
+2. **Provide Feedback**: Click 👍 Like or 👎 Dislike on articles in the email
+3. **Learning**: The agent tracks your preferences by category
+4. **Personalized Content**: Future digests adapt to show more of what you like
+
+The agent learns from your interactions and adjusts:
+- Category preferences (e.g., if you like tech but dislike sports)
+- Article selection based on engagement history
+- Recommendations tailored to your interests
+
 ## Project Structure
 
 ```
 personalized-news-agent/
 ├── news_agent/
-│   ├── __init__.py      # Package initialization
-│   ├── agent.py         # Main agent definition
-│   └── tools.py         # Custom tool functions
-├── run_agent.py         # Script to run agent programmatically
-├── requirements.txt     # Python dependencies
-├── .env.example         # Example environment variables
-└── README.md            # This file
+│   ├── __init__.py              # Package initialization
+│   ├── agent.py                 # Main agent definition
+│   ├── tools.py                 # Custom tool functions
+│   ├── email_service.py         # Email sending and HTML templates
+│   └── user_preferences.py      # User preference tracking
+├── run_agent.py                 # Interactive agent runner
+├── daily_scheduler.py           # Daily digest scheduler
+├── feedback_server.py           # Webhook server for feedback
+├── requirements.txt             # Python dependencies
+├── .env.example                 # Example environment variables
+└── README.md                    # This file
 ```
 
 ## Custom Tools
 
 The agent includes several custom tools:
 
-- `get_current_datetime`: Get the current date and time
-- `fetch_news_by_category`: Fetch news by category
+**News Fetching:**
+- `fetch_news_by_category`: Fetch real news by category (tech, business, sports, etc.)
 - `search_news`: Search for news on specific topics
-- `get_user_preferences`: Get user personalization settings
-- `save_article`: Save an article to reading list
 - `get_trending_topics`: Get currently trending topics
+
+**Personalization:**
+- `get_user_preferences`: Get user personalization settings (legacy)
+- `get_personalized_preferences`: Get detailed preferences based on feedback history
+- `track_article_feedback`: Record user likes/dislikes on articles
+- `save_article`: Save an article to reading list
+
+**Daily Digest:**
+- `collect_daily_digest`: Collect 6 curated articles for email digest
+- `send_daily_digest_email`: Send personalized digest with like/dislike buttons
+
+**Utilities:**
+- `get_current_datetime`: Get the current date and time
 
 ## Extending the Agent
 
