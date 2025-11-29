@@ -89,6 +89,31 @@ This starts an interactive command-line session with the agent.
 
 Send personalized news digests via email with like/dislike feedback.
 
+#### Quick Test - Send Email from Chat
+
+Just chat with the agent and ask it to send an email:
+
+```bash
+python run_agent.py
+```
+
+Then type:
+- "Send me a news digest email"
+- "Email me today's news"
+- "Send the daily digest to my email"
+
+The agent will collect 6 articles and email them to you!
+
+#### Or Use the Test Script
+
+```bash
+python test_email.py
+```
+
+This sends a digest immediately without the chat interface.
+
+#### Set Up Automatic Daily Emails
+
 **1. Start the feedback webhook server (in one terminal):**
 
 ```bash
