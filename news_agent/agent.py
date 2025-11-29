@@ -7,16 +7,12 @@ content to users based on their preferences and interests.
 from google.adk.agents import Agent
 
 from .tools import (
-    collect_daily_digest,
     fetch_news_by_category,
     get_current_datetime,
-    get_personalized_preferences,
     get_trending_topics,
     get_user_preferences,
     save_article,
     search_news,
-    send_daily_digest_email,
-    track_article_feedback,
 )
 
 # Agent system instruction
@@ -52,7 +48,7 @@ When interacting with users:
 1. Be concise but informative when presenting news
 2. Organize information clearly with headlines and brief summaries
 3. Offer to provide more details if the user is interested
-4. Suggest related topics based on their interests and feedback history
+4. Suggest related topics based on their interests
 5. Remember to check trending topics if users want to know what's popular
 6. Use personalized preferences to tailor content to their interests
 7. Offer to send daily digests if the user wants regular updates
@@ -74,11 +70,7 @@ root_agent = Agent(
         fetch_news_by_category,
         search_news,
         get_user_preferences,
-        get_personalized_preferences,
         save_article,
-        get_trending_topics,
-        collect_daily_digest,
-        send_daily_digest_email,
-        track_article_feedback,
+        get_trending_topics
     ],
 )
