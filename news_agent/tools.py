@@ -16,6 +16,14 @@ from .user_preferences import (
     get_user_preferences_detailed,
     get_recommended_categories,
 )
+from .long_term_memory import (
+    store_conversation,
+    store_article_interaction,
+    get_conversation_history,
+    get_user_profile,
+    update_user_profile,
+    get_reading_recommendations,
+)
 
 # NewsAPI configuration
 NEWSAPI_BASE_URL = "https://newsapi.org/v2"
@@ -487,3 +495,134 @@ def get_personalized_preferences(user_id: str) -> dict:
         dict: Detailed preference information and statistics.
     """
     return get_user_preferences_detailed(user_id)
+
+
+# ============================================================================
+# LONG-TERM MEMORY TOOLS
+# ============================================================================
+
+
+def remember_conversation(user_id: str, topic: str, summary: str) -> dict:
+    """Store important conversation context in long-term memory.
+
+    Use this tool to remember key points from the conversation that should
+    be recalled in future sessions. This helps provide continuity across sessions.
+
+    Args:
+        user_id: The unique identifier for the user.
+        topic: The topic or category of the conversation.
+        summary: A brief summary of what was discussed.
+
+    Returns:
+        dict: Confirmation that the memory was stored.
+    """
+    return store_conversation(
+        user_id=user_id,
+        user_message=topic,
+        agent_response=summary,
+        context={"type": "memory_note"}
+    )
+
+
+def recall_past_conversations(user_id: str, limit: int = 5) -> dict:
+    """Recall recent conversation history from long-term memory.
+
+    Use this tool to get context from previous conversations with the user.
+    This helps you remember what you've discussed before and provide
+    personalized, contextual responses.
+
+    Args:
+        user_id: The unique identifier for the user.
+        limit: Number of recent conversations to recall (default: 5).
+
+    Returns:
+        dict: Recent conversation history with context.
+    """
+    return get_conversation_history(user_id, limit)
+
+
+def get_user_memory_profile(user_id: str) -> dict:
+    """Get comprehensive user profile from long-term memory.
+
+    Use this tool to understand the user's complete history including:
+    - Reading patterns and interests
+    - Engagement statistics
+    - Conversation history
+    - Preferences and favorite topics
+
+    Args:
+        user_id: The unique identifier for the user.
+
+    Returns:
+        dict: Complete user profile with memory and statistics.
+    """
+    return get_user_profile(user_id)
+
+
+def update_user_info(
+    user_id: str,
+    name: str = None,
+    interests: str = None
+) -> dict:
+    """Update user profile information in long-term memory.
+
+    Use this tool when the user tells you their name, interests, or preferences.
+    This helps personalize future interactions.
+
+    Args:
+        user_id: The unique identifier for the user.
+        name: User's name (optional).
+        interests: Comma-separated interests (e.g., "technology, science, politics").
+
+    Returns:
+        dict: Confirmation of profile update.
+    """
+    interests_list = None
+    if interests:
+        interests_list = [i.strip() for i in interests.split(",")]
+
+    return update_user_profile(user_id, name=name, interests=interests_list)
+
+
+def get_smart_recommendations(user_id: str) -> dict:
+    """Get AI-powered article recommendations based on user's memory.
+
+    Use this tool to get personalized recommendations based on the user's
+    complete interaction history, reading patterns, and preferences.
+
+    Args:
+        user_id: The unique identifier for the user.
+
+    Returns:
+        dict: Personalized category and topic recommendations.
+    """
+    return get_reading_recommendations(user_id)
+
+
+def track_article_view(
+    user_id: str,
+    article_title: str,
+    article_url: str,
+    category: str
+) -> dict:
+    """Track when a user views an article (for memory/analytics).
+
+    Use this tool to record that the user has seen an article.
+    This helps avoid showing duplicate content and improves recommendations.
+
+    Args:
+        user_id: The unique identifier for the user.
+        article_title: Title of the article.
+        article_url: URL of the article.
+        category: News category.
+
+    Returns:
+        dict: Confirmation that the view was recorded.
+    """
+    return store_article_interaction(
+        user_id=user_id,
+        article_title=article_title,
+        article_url=article_url,
+        category=category,
+        action="viewed"
+    )

@@ -4,15 +4,24 @@ An AI-powered news agent built with Google's Agent Development Kit (ADK) that de
 
 ## Features
 
+### Core News Capabilities
 - Fetch news articles by category (technology, business, sports, health, science)
 - Search for news on specific topics
 - Discover trending topics
 - Save articles to a reading list
-- Personalized recommendations based on user preferences
-- **Daily email digests** with 6 curated articles (2 tech, 2 politics, 2 world news)
-- **Like/Dislike feedback system** to learn your preferences
-- **Intelligent personalization** that adapts to your interests over time
-- **Automated scheduling** for daily 7:00 AM email delivery
+
+### Personalization & Learning
+- **Long-term memory** - Remembers conversations across sessions
+- **User profile building** - Learns your interests over time
+- **Like/Dislike feedback system** - Trains on your preferences
+- **Smart recommendations** - AI-powered content suggestions based on your history
+- **Reading history tracking** - Never shows you duplicate articles
+
+### Daily Email Digests
+- **Automated email digests** with 6 curated articles (2 tech, 2 politics, 2 business)
+- **Interactive emails** with like/dislike buttons for feedback
+- **Personalized content** based on your engagement history
+- **Scheduled delivery** at 7:00 AM (configurable)
 
 ## Prerequisites
 
@@ -161,6 +170,43 @@ The agent learns from your interactions and adjusts:
 - Article selection based on engagement history
 - Recommendations tailored to your interests
 
+### Long-Term Memory System
+
+The agent has **persistent memory** that remembers you across sessions:
+
+**What it remembers:**
+- 📝 **Conversation history** - Past discussions and context
+- 📖 **Reading history** - Articles you've seen (avoids duplicates)
+- ❤️ **Preferences** - Your likes, dislikes, and interests
+- 📊 **Statistics** - Engagement patterns and favorite topics
+- 👤 **Profile** - Your name, interests, and personalization settings
+
+**How to use memory:**
+
+```bash
+python run_agent.py
+```
+
+Try these commands:
+- "Remember that I'm interested in AI and robotics"
+- "What have we talked about before?"
+- "What are my favorite topics?"
+- "Show me my reading statistics"
+- "My name is John" (agent will remember for next session)
+
+**Memory is stored locally** in `agent_memory.json` - your data never leaves your machine!
+
+**Example conversation:**
+```
+Session 1:
+You: My name is Sarah and I love technology news
+Agent: Nice to meet you, Sarah! I'll remember that you're interested in technology.
+
+Session 2 (next day):
+You: What's new today?
+Agent: Welcome back, Sarah! Based on your interest in technology, here are today's top tech stories...
+```
+
 ## Project Structure
 
 ```
@@ -170,12 +216,15 @@ personalized-news-agent/
 │   ├── agent.py                 # Main agent definition
 │   ├── tools.py                 # Custom tool functions
 │   ├── email_service.py         # Email sending and HTML templates
-│   └── user_preferences.py      # User preference tracking
+│   ├── user_preferences.py      # User preference tracking
+│   └── long_term_memory.py      # Long-term memory system
 ├── run_agent.py                 # Interactive agent runner
 ├── daily_scheduler.py           # Daily digest scheduler
 ├── feedback_server.py           # Webhook server for feedback
+├── test_email.py                # Quick email testing script
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Example environment variables
+├── agent_memory.json            # Long-term memory storage (auto-created)
 └── README.md                    # This file
 ```
 
@@ -197,6 +246,14 @@ The agent includes several custom tools:
 **Daily Digest:**
 - `collect_daily_digest`: Collect 6 curated articles for email digest
 - `send_daily_digest_email`: Send personalized digest with like/dislike buttons
+
+**Long-Term Memory:**
+- `recall_past_conversations`: Retrieve previous conversation history
+- `get_user_memory_profile`: Get complete user profile with stats
+- `remember_conversation`: Store important context for future sessions
+- `update_user_info`: Update user name and interests
+- `get_smart_recommendations`: AI-powered content recommendations
+- `track_article_view`: Record when user views an article
 
 **Utilities:**
 - `get_current_datetime`: Get the current date and time

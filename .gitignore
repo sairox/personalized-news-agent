@@ -3,6 +3,7 @@
 
 # User preferences and data
 user_preferences.json
+agent_memory.json
 
 # Python
 __pycache__/
